@@ -32,7 +32,10 @@ export default function Home() {
   const [isComplete, setIsComplete] = useState(false);
   const [startTime, setStartTime] = useState<number | null>(null);
   const [endTime, setEndTime] = useState<number | null>(null);
-
+  const [isStarted, setIsStarted] = useState(false);
+  
+  const [userName, setUserName] = useState("");
+  
   const resetGame = () => {
     setCurrentQuestionIndex(0);
     setCurrentPosition(0);
@@ -40,15 +43,15 @@ export default function Home() {
     setStartTime(Date.now());
     setEndTime(null);
   };
-
+  
   useEffect(() => {
     setStartTime(Date.now());
   }, []);
-
+  
   useEffect(() => {
     const handleKyeDown = async (e: KeyboardEvent) => {
       if (isComplete) return;
-
+      
       const currentQuestion = questions[currentQuestionIndex];
       if (e.key.toLowerCase() === currentQuestion.question[currentPosition].toLowerCase()) {
         setCurrentPosition((prev) => prev + 1);
@@ -66,6 +69,32 @@ export default function Home() {
     window.addEventListener("keydown", handleKyeDown);
     return () => window.removeEventListener("keydown", handleKyeDown);
   }, [currentQuestionIndex, currentPosition, isComplete]);
+  const handleStart = () => {
+    if(!userName) {
+      alert("名前を入力してください");
+      return;
+    }
+    setIsStarted(true);
+  };
+  
+  if(!isStarted) {
+    return (
+      <main className="flex min-h-screen flex-col items-center justify-center bg-black">
+        <div className="text-center p-8">
+          <input 
+            type="text" 
+            placeholder="Enter your name..." 
+            className="w-64 p-3 text-lg bg-white text-black rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500" 
+            value={userName} 
+            onChange={(e) => setUserName(e.target.value)}
+          />
+          <div className="mt-4">
+            <button className="px-8 py-3 text-xl bg-red-900" onClick={handleStart}>StartGame</button>
+          </div> 
+        </div>
+      </main>
+    );
+  }
 
   const calculateScore = () => {
     if (!startTime || !endTime) return null;
