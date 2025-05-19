@@ -33,9 +33,20 @@ export default function Home() {
   const [startTime, setStartTime] = useState<number | null>(null);
   const [endTime, setEndTime] = useState<number | null>(null);
   const [isStarted, setIsStarted] = useState(false);
-  
   const [userName, setUserName] = useState("");
-  
+  const [totalTime, setTotalTime] = useState(0);
+  const [totalScore, setTotalScore] = useState(0);
+  const addResult = (userName: string, startTime: number) => {
+    const endTime = Date.now();
+    const totalTime = endTime - startTime;
+    const timeInSeconds = totalTime / 1000;
+    const baseScore = 10000;
+    const timeDeduction = timeInSeconds * 100;
+    const score = baseScore - timeDeduction;
+    return {totalTime, score};
+  };
+
+
   const resetGame = () => {
     setCurrentQuestionIndex(0);
     setCurrentPosition(0);
@@ -60,6 +71,11 @@ export default function Home() {
         if (currentQuestionIndex === questions.length - 1) {
           setIsComplete(true);
           setEndTime(Date.now());
+          if (startTime) {
+            const {totalTime, score} = addResult(userName, startTime);
+            setTotalTime(totalTime);
+            setTotalScore(score);
+          }
         } else {
           setCurrentQuestionIndex((prev) => prev + 1);
           setCurrentPosition(0);
@@ -131,15 +147,23 @@ export default function Home() {
         </div>
       ) : (
         <div className="text-center w-full h-screen flex flex-col items-center justify-center bg-gray-900">
-          <h1 className="text-6xl font-bold text-white mb-8">ゲームクリア！</h1>
+          <h1 className="text-6xl font-bold text-white mb-8">Result</h1>
           <p className="text-2xl text-white mb-4">
-            クリアタイム: {calculateScore()} 秒
+            Your Name: {userName}
           </p>
+          <p className="text-2xl text-white mb-4">
+            {/* Time: {calculateScore()} sec */}
+            Your Time: {(totalTime / 1000).toFixed(2)} seconds
+          </p>
+          <p className="text-2xl text-white mb-4">
+            Your Score: {totalScore}
+          </p>
+
           <button
             onClick={resetGame}
             className="bg-red-600 hover:bg-red-700 text-white font-bold py-3 px-6 rounded-lg text-xl transition-colors"
           >
-            もう一度プレイ
+            Play Again
           </button>
         </div>
       )}
