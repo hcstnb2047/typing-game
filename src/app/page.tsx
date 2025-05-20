@@ -79,7 +79,8 @@ export default function Home() {
     try {
       const response = await fetch("http://localhost:3000/api/result");
       const data = await response.json();
-      return data.results || [];
+      console.log("API data:", data);
+      return data || [];
     } catch (error) {
       console.error("Error fetching scores:", error);
       return [];
@@ -126,6 +127,8 @@ export default function Home() {
     }
     const fetchedScores = await fetchScores();
     setScores(fetchedScores);
+    console.log("setScores直後:", fetchedScores);
+    setStartTime(Date.now());
     setIsStarted(true);
   };
   
@@ -153,6 +156,8 @@ export default function Home() {
     const timeInSeconds = (endTime - startTime) / 1000;
     return timeInSeconds.toFixed(2);
   };
+
+  console.log("描画時scores:", scores);
 
   return (
     <main className="flex min-h-screen flex-col items-center justify-between relative">
@@ -182,7 +187,7 @@ export default function Home() {
           </div>
         </div>
       ) : (
-        <div className="text-center w-full h-screen flex flex-col items-center justify-center bg-gray-900">
+        <div className="text-center w-full min-h-screen flex flex-col items-center justify-center bg-black">
           <h1 className="text-6xl font-bold text-white mb-8">Result</h1>
           <p className="text-2xl text-white mb-4">
             Player: {userName}
@@ -199,7 +204,8 @@ export default function Home() {
             <div className="flex flex-col items-center justify-center py-8">
               <p className="text-white">Loading...</p>
             </div>
-          ):(
+          ):
+          (
             <div className="flex flex-col items-center justify-center py-8">
               {scores.map((score, index) => (
                 <div key={index} className="flex justify-between items-center p-3">
@@ -208,7 +214,7 @@ export default function Home() {
                 </div>
               ))}
             </div>
-          )}
+          )} 
           </div>
 
           <button
