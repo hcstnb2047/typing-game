@@ -3,6 +3,11 @@
 import Image from "next/image";
 import { useState, useEffect } from "react";
 
+type Score = {
+  score: number;
+  userName: string;
+}
+
 export default function Home() {
   const questions = [
     {
@@ -36,13 +41,24 @@ export default function Home() {
   const [userName, setUserName] = useState("");
   const [totalTime, setTotalTime] = useState(0);
   const [totalScore, setTotalScore] = useState(0);
-  const addResult = (userName: string, startTime: number) => {
+  const [scores, setScores] = useState<Score[]>([]);
+
+  const addResult = async (userName: string, startTime: number) => {
     const endTime = Date.now();
     const totalTime = endTime - startTime;
     const timeInSeconds = totalTime / 1000;
     const baseScore = 10000;
     const timeDeduction = timeInSeconds * 100;
     const score = baseScore - timeDeduction;
+
+    await fetch("http://localhost:3000/api/result", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({score, userName}),
+    });
+
     return {totalTime, score};
   };
 
@@ -58,6 +74,17 @@ export default function Home() {
   useEffect(() => {
     setStartTime(Date.now());
   }, []);
+
+  const fetchScores = async () => {
+    try {
+      const response = await fetch("http://localhost:3000/api/result");
+      const data = await response.json();
+      return data.results || [];
+    } catch (error) {
+      console.error("Error fetching scores:", error);
+      return [];
+    }
+  };
   
   useEffect(() => {
     const handleKyeDown = async (e: KeyboardEvent) => {
@@ -72,7 +99,7 @@ export default function Home() {
           setIsComplete(true);
           setEndTime(Date.now());
           if (startTime) {
-            const {totalTime, score} = addResult(userName, startTime);
+            const {totalTime, score} = await addResult(userName, startTime);
             setTotalTime(totalTime);
             setTotalScore(score);
           }
@@ -85,11 +112,20 @@ export default function Home() {
     window.addEventListener("keydown", handleKyeDown);
     return () => window.removeEventListener("keydown", handleKyeDown);
   }, [currentQuestionIndex, currentPosition, isComplete]);
-  const handleStart = () => {
+
+  useEffect(() => {
+    if (isComplete) {
+      fetchScores().then(setScores);
+    }
+  }, [isComplete]);
+
+  const handleStart = async () => {
     if(!userName) {
       alert("名前を入力してください");
       return;
     }
+    const fetchedScores = await fetchScores();
+    setScores(fetchedScores);
     setIsStarted(true);
   };
   
@@ -149,7 +185,7 @@ export default function Home() {
         <div className="text-center w-full h-screen flex flex-col items-center justify-center bg-gray-900">
           <h1 className="text-6xl font-bold text-white mb-8">Result</h1>
           <p className="text-2xl text-white mb-4">
-            Your Name: {userName}
+            Player: {userName}
           </p>
           <p className="text-2xl text-white mb-4">
             {/* Time: {calculateScore()} sec */}
@@ -158,6 +194,22 @@ export default function Home() {
           <p className="text-2xl text-white mb-4">
             Your Score: {totalScore}
           </p>
+          <div className="mt-8"><h3 className="text-white">Ranking</h3>
+          {scores.length === 0?(
+            <div className="flex flex-col items-center justify-center py-8">
+              <p className="text-white">Loading...</p>
+            </div>
+          ):(
+            <div className="flex flex-col items-center justify-center py-8">
+              {scores.map((score, index) => (
+                <div key={index} className="flex justify-between items-center p-3">
+                  <span className="text-white">{index + 1}. {score.userName}</span>
+                  <span className="text-red-500">{score.score}</span>
+                </div>
+              ))}
+            </div>
+          )}
+          </div>
 
           <button
             onClick={resetGame}

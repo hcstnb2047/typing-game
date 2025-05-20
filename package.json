@@ -9,6 +9,7 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "@upstash/redis": "^1.34.9",
     "hono": "^4.7.10",
     "next": "^15.3.2",
     "react": "^19.0.0",
