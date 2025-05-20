@@ -1,7 +1,7 @@
 "use client";
 
 import Image from "next/image";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 
 type Score = {
   score: number;
@@ -42,6 +42,28 @@ export default function Home() {
   const [totalTime, setTotalTime] = useState(0);
   const [totalScore, setTotalScore] = useState(0);
   const [scores, setScores] = useState<Score[]>([]);
+  const bgmRef = useRef<HTMLAudioElement>(null);
+  const shotSoundRef = useRef<HTMLAudioElement>(null);
+
+
+  useEffect(() =>{
+    bgmRef.current = new Audio("/bgm.mp3");
+    bgmRef.current.loop = true;
+    shotSoundRef.current = new Audio("/shot.mp3");
+
+
+  })
+useEffect(() =>{
+  if(isStarted && bgmRef.current){
+    bgmRef.current.play();
+  }
+  if(isComplete && bgmRef.current){
+    bgmRef.current.pause();
+  }
+
+})
+
+
 
   const addResult = async (userName: string, startTime: number) => {
     const endTime = Date.now();
@@ -97,6 +119,10 @@ export default function Home() {
       }
       if (currentPosition === currentQuestion.question.length - 1) {
         if (currentQuestionIndex === questions.length - 1) {
+          if(shotSoundRef.current){
+            shotSoundRef.current.currentTime = 0;
+            shotSoundRef.current.play();
+          }
           setIsComplete(true);
           setEndTime(Date.now());
           if (startTime) {
@@ -105,6 +131,10 @@ export default function Home() {
             setTotalScore(score);
           }
         } else {
+          if(shotSoundRef.current){
+            shotSoundRef.current.currentTime = 0;
+            shotSoundRef.current.play();
+          }
           setCurrentQuestionIndex((prev) => prev + 1);
           setCurrentPosition(0);
         }
